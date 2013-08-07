@@ -1,1 +1,79 @@
 #!/usr/bin/env ruby
+
+require 'optparse'
+require 'zlib'
+require 'json'
+require 'addressable/uri'
+require 'thread'
+require 'net/http'
+require 'typhoeus'
+
+########################################
+# options 
+########################################
+
+opts = {
+  :filepath    => nil,
+  :concurrency => 10, 
+  :host        => 'localhost', 
+  :port        => 8080, 
+  :dsp         => 0, 
+}
+op = OptionParser.new
+op.on('-f', '--file PATH')       {|v| opts[:filepath] = v }
+op.on('-c', '--concurrency NUM') {|v| opts[:concurrency] = v.to_i }
+op.on('-h', '--host HOST')       {|v| opts[:host] = v }
+op.on('-p', '--port PORT')       {|v| opts[:port] = v.to_i }
+op.on('-d', '--dsp DSP NUM')     {|v| opts[:dsp] = v.to_i }
+
+begin
+  op.parse!(ARGV)
+
+  if ARGV.length != 0
+    usage nil
+  end
+rescue
+  usage $!.to_s
+end
+
+########################################
+# function 
+########################################
+def do_requests(queries, opts)
+  queries.each do |query|
+    Net::HTTP.start(opts[:host], opts[:port]){|http|
+        res = http.get("/?#{query}")
+#        puts query
+    }
+  end
+end
+
+
+########################################
+# main
+########################################
+Zlib::GzipReader.open(opts[:filepath]) do |gz|
+  queries = []
+  gz.each_line do |line|
+    json = JSON.load(line)
+    # extract target dsp parameters.
+    params = Hash[ json.keys.select{|k| k=~/^d#{opts[:dsp]}_.*/ or k=='id'}.map{|k|
+        key = k
+        k = k.gsub(/^d#{opts[:dsp]}_/, '')
+        [k, json[key]]
+      } 
+    ]
+    uri = Addressable::URI.new
+    uri.query_values = params 
+    queries.push uri.query
+
+    if queries.size >= opts[:concurrency] * 2
+      do_requests(queries, opts)
+      queries = []
+    end
+  end
+
+  if queries.size > 0
+    do_requests(queries, opts)
+  end
+end
