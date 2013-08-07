@@ -1,1 +1,78 @@
 #!/usr/bin/env ruby
+
+require 'optparse'
+require 'zlib'
+require 'json'
+
+########################################
+# options 
+########################################
+
+opts = {
+  :out          => nil,
+  :scenario_num => 0,
+  :dsp_num      => 0,
+  :bid_rate     => 50,
+}
+op = OptionParser.new
+op.on('-o', '--out PATH')               {|v| opts[:out] = v }
+op.on('-n', '--num TOTAL SCENARIO NUM') {|v| opts[:scenario_num] = v.to_i }
+op.on('-d', '--dsp TOTAL DSP NUM')      {|v| opts[:dsp_num] = v.to_i }
+op.on('-r', '--rate BID RATE')          {|v| opts[:bid_rate] = v.to_i }
+
+begin
+  op.parse!(ARGV)
+
+  if ARGV.length != 0
+    usage nil
+  end
+rescue
+  usage $!.to_s
+end
+
+# validate parameters
+if opts[:scenario_num] < 1
+  puts "num is require greater than 0."
+  exit 1
+end
+
+if opts[:dsp_num] < 1
+  puts "dsp is require greater than 0."
+  exit 1
+end
+
+########################################
+# functions 
+########################################
+
+def generate_id()
+  chars = ("a".."z").to_a + ("A".."Z").to_a + (0..9).to_a
+  Array.new(64){chars[rand(chars.size)]}.join
+end
+
+def make_scenario(opts)
+  scenario = {}
+
+  scenario["id"] = generate_id() 
+  (1..opts[:dsp_num]).each do |n|
+    scenario["d#{n}_t"] = rand(120)
+    bid = rand(100) < opts[:bid_rate]
+    scenario["d#{n}_s"] = bid ? 1 : 0
+    # cpm per bid max 1000 yen 
+    scenario["d#{n}_p"] = rand(1000) * 1000 if bid 
+  end
+
+  scenario
+end
+
+########################################
+# main
+########################################
+filepath = opts[:out] =~ /.gz$/ ? opts[:out] : "#{opts[:out]}.gz" 
+Zlib::GzipWriter.open(filepath) do |gz|
+  opts[:scenario_num].times do |i|
+    scenario = make_scenario(opts)
+    puts scenario
+    gz.puts JSON.generate(scenario)
+  end
+end
