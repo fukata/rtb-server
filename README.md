@@ -10,10 +10,10 @@ RTB server mocks and benchmarks.
 - /ad
   - method: GET
   - parameters
-    - dsp: total DSP number.
-    - dN_t: DSP bid response time.
-    - dN_s: DSP bid response status.
-    - dN_p: DSP bid response auction price.
+      - dsp: total DSP number.
+      - dN_t: DSP bid response time.
+      - dN_s: DSP bid response status.
+      - dN_p: DSP bid response auction price.
 
 ## for DSP side
 ### routes
@@ -21,9 +21,9 @@ RTB server mocks and benchmarks.
 - /ad/dN
   - method: POST
   - parameters
-    - t: bid response time.
-    - s: bid response status.
-    - p: auction price.
+      - t: bid response time.
+      - s: bid response status.
+      - p: auction price.
   - response
 	  - format: json
 
