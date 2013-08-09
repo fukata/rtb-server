@@ -1,0 +1,4 @@
+*.swp
+http_load/http_load
+http_load/http_load.o
+http_load/timers.o
