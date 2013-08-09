@@ -1,8 +1,7 @@
 #!/usr/bin/env ruby
 
 require 'optparse'
-require 'zlib'
-require 'json'
+require 'addressable/uri'
 
 ########################################
 # options 
@@ -13,12 +12,18 @@ opts = {
   :scenario_num => 0,
   :dsp_num      => 0,
   :bid_rate     => 50,
+  :target_host  => 'localhost', 
+  :target_port  => 80,
+  :target_dsp   => nil,
 }
 op = OptionParser.new
-op.on('-o', '--out PATH')               {|v| opts[:out] = v }
-op.on('-n', '--num TOTAL SCENARIO NUM') {|v| opts[:scenario_num] = v.to_i }
-op.on('-d', '--dsp TOTAL DSP NUM')      {|v| opts[:dsp_num] = v.to_i }
-op.on('-r', '--rate BID RATE')          {|v| opts[:bid_rate] = v.to_i }
+op.on('-o', '--out PATH')                   {|v| opts[:out] = v }
+op.on('-n', '--num TOTAL SCENARIO NUM')     {|v| opts[:scenario_num] = v.to_i }
+op.on('-d', '--dsp TOTAL DSP NUM')          {|v| opts[:dsp_num] = v.to_i }
+op.on('-r', '--rate BID RATE')              {|v| opts[:bid_rate] = v.to_i }
+op.on('-h', '--target_host TARGET HOST')    {|v| opts[:target_host] = v }
+op.on('-p', '--target_port TARGET PORT')    {|v| opts[:target_port] = v.to_i }
+op.on('-td', '--target_dsp TARGET DSP')     {|v| opts[:target_dsp] = v.to_i }
 
 begin
   op.parse!(ARGV)
@@ -36,8 +41,8 @@ if opts[:scenario_num] < 1
   exit 1
 end
 
-if opts[:dsp_num] < 1
-  puts "dsp is require greater than 0."
+if opts[:dsp_num] < 0 and opts[:target_dsp] 
+  puts "dsp or target_dsp is require greater equal than 0."
   exit 1
 end
 
@@ -53,8 +58,15 @@ end
 def make_scenario(opts)
   scenario = {}
 
-  scenario["id"] = generate_id() 
-  (1..opts[:dsp_num]).each do |n|
+  scenario["id"] = generate_id()
+  range = if opts[:target_dsp]
+            (opts[:target_dsp]..opts[:target_dsp])
+          else
+            num = opts[:dsp_num] > 0 ? opts[:dsp_num] - 1 : 0
+            (0..num)
+          end
+
+  range.each do |n|
     scenario["d#{n}_t"] = rand(120)
     bid = rand(100) < opts[:bid_rate]
     scenario["d#{n}_s"] = bid ? 1 : 0
@@ -68,11 +80,12 @@ end
 ########################################
 # main
 ########################################
-filepath = opts[:out] =~ /.gz$/ ? opts[:out] : "#{opts[:out]}.gz" 
-Zlib::GzipWriter.open(filepath) do |gz|
+File.open(opts[:out], 'w') do |f|
+  uri = Addressable::URI.new
+  target_port = opts[:target_port] == 80 ? '' : ":#{opts[:target_port]}"
   opts[:scenario_num].times do |i|
     scenario = make_scenario(opts)
-    puts scenario
-    gz.puts JSON.generate(scenario)
+    uri.query_values = scenario 
+    f.puts "http://#{opts[:target_host]}#{target_port}/ad?#{uri.query}"
   end
 end
