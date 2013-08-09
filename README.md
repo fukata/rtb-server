@@ -5,7 +5,10 @@ RTB server mocks and benchmarks.
 
 # Specifications
 ## for SSP side
-### routes
+### Auction
+- 1st price auction
+
+### Routes
 
 - /ad
   - method: GET
@@ -16,7 +19,7 @@ RTB server mocks and benchmarks.
       - dN_p: DSP bid response auction price.
 
 ## for DSP side
-### routes
+### Routes
 
 - /ad/dN
   - method: POST
