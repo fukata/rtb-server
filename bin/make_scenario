@@ -66,6 +66,7 @@ def make_scenario(opts)
     # cpm per bid max 1000 yen 
     scenario["p"] = bid ? rand(1000) * 1000 : 0 
   else
+    scenario["dsp"] = opts[:dsp_num] 
     opts[:dsp_num].times do |n|
       scenario["d#{n}_t"] = rand(130)
       bid = rand(100) < opts[:bid_rate]
