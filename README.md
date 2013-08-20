@@ -38,10 +38,4 @@ RTB server mocks and benchmarks.
 
 # Benchmak
 ## Make Scenario
-	$ ./bin/make_scenario --help
-
-## Execution AD Request to SSP side
-	$ ./bin/bench_ssp --help
-
-## Execution AD Request to DSP side
-	$ ./bin/bench_dsp --help
+	$ bundle exec ./bin/make_scenario --help
