@@ -34,6 +34,7 @@ RTB server mocks and benchmarks.
 	{
 		"id": "${UNIQUE BID ID}",
 		"price": "${PRICE}"
+		"status": "${STATUS}"
 	}
 
 # Benchmak
