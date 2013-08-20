@@ -22,7 +22,7 @@ RTB server mocks and benchmarks.
 ### Routes
 
 - /ad/dN
-  - method: POST
+  - method: GET 
   - parameters
       - t: bid response time.
       - s: bid response status.
