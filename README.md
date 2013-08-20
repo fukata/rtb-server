@@ -39,4 +39,6 @@ RTB server mocks and benchmarks.
 
 # Benchmak
 ## Make Scenario
-	$ bundle exec ./bin/make_scenario --help
+	$ bundle exec ./bin/make_scenario --num 10000 --dsp 5 --rate 50 --out /tmp/scenario_10000
+## HTTP Access
+    $ ./lib/http_load/http_load -timeout 1 -parallel 100 -seconds 60 /tmp/scenario_ssp_10000
