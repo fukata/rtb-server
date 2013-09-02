@@ -5,6 +5,9 @@ RTB server mocks and benchmarks.
 
 # Specifications
 ## for SSP side
+### Timeout
+- 120 ms
+
 ### Auction
 - 1st price auction
 
